@@ -1,12 +1,13 @@
 package tora.personal
 
 import java.util.Random
+import java.math.BigInteger
 import tora.personal.Rational
 
 fun ClosedRange<Int>.random() = Random().nextInt(endInclusive - start) + start
 
 class Matrix private constructor(val width: Int, val height: Int) {
-    var elements: Array<Array<Rational>> = Array(height, { _ -> Array(width, { _ -> Rational(0L)}) })
+    var elements: Array<Array<Rational>> = Array(height, { _ -> Array(width, { _ -> Rational.ZERO}) })
 
     companion object {
 
@@ -20,20 +21,20 @@ class Matrix private constructor(val width: Int, val height: Int) {
             for (row in 0 until d) {
                 for (col in 0 until d) {
                     if (row == col)
-                        new.elements[row][col] = Rational(1L)
+                        new.elements[row][col] = Rational.ONE
                 }
             }
             return new
         }
 
-        fun of(w: Int, h: Int, vararg values: Long): Matrix {
+        fun of(w: Int, h: Int, vararg values: BigInteger): Matrix {
             require(values.size <= w * h) { "Too many values to fill matrix" }
             var new = Matrix(w, h)
 
             for (i in values.indices) {
                 val col = i / w
                 val row = i % w
-                new.elements[col][row] = Rational(i.toLong())
+                new.elements[col][row] = Rational(values[i])
             }
 
             return new
@@ -43,7 +44,7 @@ class Matrix private constructor(val width: Int, val height: Int) {
             var new = Matrix(w, h)
             for (row in 0 until h)
                 for (col in 0 until w)
-                    new.elements[row][col] = Rational(range.random().toLong())
+                    new.elements[row][col] = Rational(BigInteger.valueOf(range.random().toLong()))
 
             return new
         }
@@ -52,7 +53,7 @@ class Matrix private constructor(val width: Int, val height: Int) {
             require (first.size == second.size) { "Dot product requires same dimensions" }
 
             var zipped = first.zip(second)
-            var result = Rational(0L)
+            var result = Rational.ZERO
             for ( pair in zipped) {
                 result += pair.first * pair.second
             }
@@ -152,12 +153,12 @@ class Matrix private constructor(val width: Int, val height: Int) {
         for (row in this.elements.indices) {
             for (col in this.elements[row].indices) {
                 if (row == col) {
-                    if (this.elements[row][col] != Rational(1L)) {
+                    if (this.elements[row][col] != Rational.ONE) {
                         return false
                     }
                 }
                 else {
-                    if (this.elements[row][col] != Rational(0L)) {
+                    if (this.elements[row][col] != Rational.ZERO) {
                         return false
                     }
                 }
@@ -173,7 +174,7 @@ class Matrix private constructor(val width: Int, val height: Int) {
 
         val ref = this.rowEchelon()
 
-        var det = Rational(1L)
+        var det = Rational.ONE
         for (i in 0 until ref.height) {
             det *= ref.elements[i][i]
         }
@@ -192,7 +193,7 @@ class Matrix private constructor(val width: Int, val height: Int) {
             var r = i
             var pivot = new.elements[r][j]
 
-            while (pivot == Rational(0L)) {
+            while (pivot == Rational.ZERO) {
                 r++
                 if (r >= new.height) {
                     //We didn't find any non-zero elements, increment j and move on
@@ -237,7 +238,7 @@ class Matrix private constructor(val width: Int, val height: Int) {
             var r = i
             var pivot = new.elements[r][j]
 
-            while (pivot == Rational(0L)) {
+            while (pivot == Rational.ZERO) {
                 r++
                 if (r >= new.height) {
                     //We didn't find any non-zero elements, increment j and move on
@@ -298,7 +299,7 @@ class Matrix private constructor(val width: Int, val height: Int) {
             throw ArithmeticException("Inverse requires square matrix")
         }
 
-        if (this.det() == Rational(0L)) {
+        if (this.det() == Rational.ZERO) {
             throw ArithmeticException("Inverse does not exist, determinant is zero")
         }
 
@@ -321,8 +322,9 @@ class Matrix private constructor(val width: Int, val height: Int) {
     fun dump() {
         for (row in elements) {
             for (col in row) {
-                print(col.toString() + " \t")
+                print(col.toString() + "\t")
             }
+            println()
             println()
         }
     }
@@ -332,9 +334,9 @@ class Matrix private constructor(val width: Int, val height: Int) {
 
         for (row in elements) {
             for (col in row) {
-                str += col.toString() + " \t"
+                str += col.toString() + "\t"
             }
-            str += "\n"
+            str += "\n\n"
         }
 
         return str
@@ -342,7 +344,7 @@ class Matrix private constructor(val width: Int, val height: Int) {
 }
 
 fun main(args: Array<String>) {
-    var testMatrix = Matrix.random(6, 6, 0..10)
+    var testMatrix = Matrix.random(200, 200, 0..10)
     testMatrix.dump()
     println()
     print(testMatrix.det())
